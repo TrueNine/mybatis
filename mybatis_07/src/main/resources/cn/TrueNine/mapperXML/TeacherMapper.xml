@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.TrueNine.mapper.TeacherMapper">
+    <select id="getTeacherList" resultType="teacher">
+        SELECT *
+        FROM mybatis.`teacher`;
+    </select>
+
+    <resultMap id="teacherStudent" type="teacher">
+        <result column="tid" property="id"/>
+        <result column="tname" property="name"/>
+        <!--ofType 获取集合中的泛型-->
+        <collection property="students" ofType="student">
+            <result column="sid" property="id"/>
+            <result column="sname" property="name"/>
+            <result column="stid" property="tid"/>
+        </collection>
+    </resultMap>
+    <select id="getTeacherAndStudent" resultMap="teacherStudent">
+        SELECT t.`id`   AS `tid`,
+               t.`name` AS `tname`,
+               s.`id`   AS `sid`,
+               s.`name` AS `sname`,
+               s.`tid`  AS `stid`
+        FROM mybatis.`student` AS `s`,
+             mybatis.`teacher` AS `t`
+        WHERE t.`id` = s.`tid`;
+    </select>
+
+    <resultMap id="teacherStudent2" type="teacher">
+        <!--相同部分省略...-->
+        <collection column="id" property="students" javaType="list" ofType="student" select="getStudentById"/>
+    </resultMap>
+    <select id="getTeacherAndStudent2" resultMap="teacherStudent2">
+        SELECT *
+        FROM mybatis.`teacher`
+        WHERE `teacher`.`id` = #{tid};
+    </select>
+    <select id="getStudentById" resultType="student">
+        SELECT *
+        FROM mybatis.`student`
+        WHERE `tid` = #{tid};
+    </select>
+</mapper>

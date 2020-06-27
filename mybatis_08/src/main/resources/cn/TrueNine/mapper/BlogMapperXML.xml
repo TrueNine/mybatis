@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org/DTD Mapper 3.0/EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.TrueNine.mapper.BlogMapper">
+
+    <sql id="if_test_sql">
+        <where>
+            <if test="(title != null) &amp;&amp; !(&quot;&quot;.equals(title))">
+                AND title = #{title}
+            </if>
+            <if test="(author != null) &amp;&amp; !(&quot;&quot;.equals(author))">
+                AND author = #{author}
+            </if>
+        </where>
+    </sql>
+
+    <select id="getAllBlog" resultType="blog">
+        SELECT *
+        FROM mybatis.`blog`;
+    </select>
+    <insert id="addBlog" parameterType="blog">
+        INSERT INTO mybatis.`blog` (id, title, author, create_time, views)
+        VALUES (#{id}, #{title}, #{author}, #{createTime}, #{views});
+    </insert>
+
+    <!--进行动态SQL 测试-->
+    <select id="queryBlogIf" parameterType="map" resultType="blog">
+        SELECT *
+        FROM mybatis.`blog`
+        <include refid="if_test_sql"/>
+        ORDER BY mybatis.`blog`.id DESC;
+    </select>
+
+    <!--测试choose-->
+    <select id="queryBlogChoose" parameterType="map" resultType="blog">
+        SELECT *
+        FROM mybatis.`blog`
+        <where>
+            <choose>
+                <when test="title != null and &quot;&quot;.equals(title)">
+                    `title` = #{title}
+                </when>
+                <when test="author != null and &quot;&quot;.equals(author)">
+                    AND `author` = #{author}
+                </when>
+                <otherwise>
+                    AND `views` = #{views}
+                </otherwise>
+            </choose>
+        </where>
+        ORDER BY `id` DESC;
+    </select>
+
+    <!--测试 set 语句-->
+    <update id="updateBlogTestSet" parameterType="map">
+        UPDATE mybatis.`blog`
+        <set>
+            <if test="title != null">`title` = #{title},</if>
+            <if test="author != null">`author` = #{author}</if>
+        </set>
+        WHERE `id` = #{id};
+    </update>
+
+    <!--测试 for each-->
+    <!--foreach 属性说明
+        collection 指定要取出的集合
+        item 每次循环取出的结果
+        index 当前的索引,本次没有使用
+        open 开始拼接
+        separator 分隔符
+        close 结束拼接
+    -->
+    <select id="queryBlogForEach" parameterType="map" resultType="blog">
+        SELECT *
+        FROM mybatis.`blog`
+        <where>
+            <foreach collection="ids"
+                     item="id"
+                     index="index"
+                     open="AND ("
+                     separator=" OR "
+                     close=")">
+                `id` = #{id}
+            </foreach>
+        </where>
+        ;
+    </select>
+</mapper>
